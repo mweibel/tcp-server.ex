@@ -36,7 +36,7 @@ defmodule TcpServer.TcpListener do
 		{:ok, pid} = TcpServer.TcpClientSupervisor.start_client()
 		case :gen_tcp.controlling_process(accept_socket, pid) do
 			:ok ->
-				pid <- {:socket_ready, accept_socket}
+				send pid, {:socket_ready, accept_socket}
 				{:noreply, state}
 			{:error, reason} ->
 				Lager.error(%s(Error moving controlling process: #{reason}))
