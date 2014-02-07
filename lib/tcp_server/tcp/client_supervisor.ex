@@ -14,7 +14,7 @@ defmodule TcpServer.TcpClientSupervisor do
 
 	def start_client do
 		# FIXME: This currently does not work
-		case :supervisor.start_child(:tcp_client_supervisor, new_client) do
+		case :supervisor.start_child(:tcp_client_supervisor, []) do
 			{:error, reason} ->
 				Lager.error("Error creating client FSM: ~p", [reason])
 				{:error, reason}
