@@ -13,7 +13,7 @@ defmodule TcpServer.TcpListener do
 	def init([port]) do
 		Process.flag(:trap_exit, true)
 		# TODO: check if {packet, 2} is ok
-		opts = [:binary, {:packet, 2}, {:reuseaddr, true},
+		opts = [:binary, {:packet, :raw}, {:reuseaddr, true},
 				{:keepalive, true}, {:backlog, 30}, {:active, false}]
 		case :gen_tcp.listen(port, opts) do
 			{:ok, ref} ->

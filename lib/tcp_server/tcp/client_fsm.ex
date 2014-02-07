@@ -21,7 +21,7 @@ defmodule TcpServer.TcpClientFsm do
 
 	def wait_for_socket({:socket_ready, socket}, state) when is_port(socket) do
 		Lager.info("Socket ready: ~p", [socket])
-		:inet.setopts(socket, [{:active, :once}, {:packet, 2}, :binary])
+		:inet.setopts(socket, [{:active, :once}, {:packet, :raw}, :binary])
 		{:ok, {ip, _port}} = :inet.peername(socket)
 		{:next_state, :wait_for_data, state.update(socket: socket, ip: ip), @timeout}
 	end
@@ -50,11 +50,11 @@ defmodule TcpServer.TcpClientFsm do
 	def handle_info({:tcp, socket, data}, state_name, State[socket: socket] = state) do
 		:inet.setopts(socket, [{:active, :once}])
 		Lager.info("Got tcp data ~p, state_name: ~p, state: ~p", [data, state_name, state])
-		apply(self(), state_name, [{:data, data}, state])
+		apply(__MODULE__, state_name, [{:data, data}, state])
 	end
 
 	def handle_info({:tcp_closed, socket}, _state_name, State[socket: socket, ip: ip] = state) do
-		Lager.info(%s(#{self()} Client #{ip} disconnected.))
+		Lager.info("~p: Client ~p disconnected", [self(), ip])
 		{:stop, :normal, state}
 	end
 
