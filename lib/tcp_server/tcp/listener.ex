@@ -34,9 +34,11 @@ defmodule TcpServer.TcpListener do
 		{:ok, accept_socket} = :gen_tcp.accept(state.socket)
 		# FIXME: Why is it not possible to call by atom (:tcp_client_supervisor)?
 		{:ok, pid} = TcpServer.TcpClientSupervisor.start_client()
+		Lager.info("PID: ~p", [pid])
 		case :gen_tcp.controlling_process(accept_socket, pid) do
 			:ok ->
-				send pid, {:socket_ready, accept_socket}
+				Lager.info("Accept socket: ~p", [accept_socket])
+				TcpServer.TcpClientFsm.set_socket(pid, accept_socket)
 				{:noreply, state}
 			{:error, reason} ->
 				Lager.error(%s(Error moving controlling process: #{reason}))

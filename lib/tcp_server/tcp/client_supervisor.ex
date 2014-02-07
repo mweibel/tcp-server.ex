@@ -28,6 +28,6 @@ defmodule TcpServer.TcpClientSupervisor do
 	end
 
 	defp new_client do
-		worker(TcpServer.TcpClientFsm, [], id: :unknown, restart: :temporary, shutdown: 2000)
+		worker(TcpServer.TcpClientFsm, [], restart: :temporary, shutdown: 2000)
 	end
 end

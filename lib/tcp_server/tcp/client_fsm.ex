@@ -15,7 +15,12 @@ defmodule TcpServer.TcpClientFsm do
 		{:ok, :wait_for_socket, State.new()}
 	end
 
+	def set_socket(pid, socket) when is_pid(pid) and is_port(socket) do
+		:gen_fsm.send_event(pid, {:socket_ready, socket})
+	end
+
 	def wait_for_socket({:socket_ready, socket}, state) when is_port(socket) do
+		Lager.info("Socket ready: ~p", [socket])
 		:inet.setopts(socket, [{:active, :once}, {:packet, 2}, :binary])
 		{:ok, {ip, _port}} = :inet.peername(socket)
 		{:next_state, :wait_for_data, state.update(socket: socket, ip: ip), @timeout}
@@ -27,6 +32,7 @@ defmodule TcpServer.TcpClientFsm do
 	end
 
 	def wait_for_data({:data, data}, State[socket: socket] = state) do
+		Lager.info("Got data ~p in state: ~p", [data, state])
 		:ok = :gen_tcp.send(socket, data)
 		{:next_state, :wait_for_data, state, @timeout}
 	end
@@ -43,7 +49,8 @@ defmodule TcpServer.TcpClientFsm do
 
 	def handle_info({:tcp, socket, data}, state_name, State[socket: socket] = state) do
 		:inet.setopts(socket, [{:active, :once}])
-		apply(__MODULE__, state_name, [{:data, data}, state])
+		Lager.info("Got tcp data ~p, state_name: ~p, state: ~p", [data, state_name, state])
+		apply(self(), state_name, [{:data, data}, state])
 	end
 
 	def handle_info({:tcp_closed, socket}, _state_name, State[socket: socket, ip: ip] = state) do
@@ -51,11 +58,12 @@ defmodule TcpServer.TcpClientFsm do
 		{:stop, :normal, state}
 	end
 
-	def handle_info(_Info, state_name, state) do
+	def handle_info(info, state_name, state) do
 		{:noreply, state_name, state}
 	end
 
-	def terminate(_reason, _state_name, State[socket: socket]) do
+	def terminate(_reason, _state_name, State[socket: socket] = state) do
+		Lager.info("Current state: ~p", [state])
 		:ok = :gen_tcp.close(socket)
 		:ok
 	end
