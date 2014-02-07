@@ -5,7 +5,7 @@ defmodule TcpServer.TcpListener do
 	defrecord State, socket: nil
 
 	def start_link do
-		port = 5000
+		{:ok, port} = :application.get_env(:port)
 		Lager.info(%s(Starting Tcp Listener on port #{port}))
 		:gen_server.start_link({ :local, :tcp_listener }, __MODULE__, [port], [])
 	end
