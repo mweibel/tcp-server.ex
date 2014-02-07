@@ -1,0 +1,3 @@
+[ "exlager": {:git, "git://github.com/khia/exlager.git", "779a75350c6bf6a30b779f6d63e2d50a94c4d9a1", []},
+  "goldrush": {:git, "git://github.com/DeadZen/goldrush.git", "71e63212f12c25827e0c1b4198d37d5d018a7fec", [tag: "0.1.6"]},
+  "lager": {:git, "https://github.com/basho/lager.git", "a718b896b85b28326467b8a0a164f3c470e79859", []} ]
