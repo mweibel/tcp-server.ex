@@ -33,7 +33,8 @@ defmodule TcpServer.TcpClientFsm do
 
 	def wait_for_data({:data, data}, State[socket: socket] = state) do
 		Lager.info("Got data ~p in state: ~p", [data, state])
-		:ok = :gen_tcp.send(socket, "> " ++ data)
+		# prepend data with ">"
+		:ok = :gen_tcp.send(socket, <<"> ", data :: binary>>)
 		{:next_state, :wait_for_data, state, @timeout}
 	end
 
