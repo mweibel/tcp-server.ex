@@ -33,12 +33,12 @@ defmodule TcpServer.TcpClientFsm do
 
 	def wait_for_data({:data, data}, State[socket: socket] = state) do
 		Lager.info("Got data ~p in state: ~p", [data, state])
-		:ok = :gen_tcp.send(socket, data)
+		:ok = :gen_tcp.send(socket, "> " ++ data)
 		{:next_state, :wait_for_data, state, @timeout}
 	end
 
 	def wait_for_data(:timeout, state) do
-		Lager.error(%s(#{self()} Client connection timeout - closing.))
+		Lager.error("Client: ~p, connection timeout - closing.", [self()])
 		{:stop, :normal, state}
 	end
 
@@ -58,13 +58,12 @@ defmodule TcpServer.TcpClientFsm do
 		{:stop, :normal, state}
 	end
 
-	def handle_info(info, state_name, state) do
+	def handle_info(_info, state_name, state) do
 		{:noreply, state_name, state}
 	end
 
-	def terminate(_reason, _state_name, State[socket: socket] = state) do
-		Lager.info("Current state: ~p", [state])
-		:ok = :gen_tcp.close(socket)
-		:ok
+	def terminate(reason, state_name, State[socket: socket]) do
+		Lager.info("Terminating ~p at state ~p due to ~p", [socket, state_name, reason])
+		:gen_tcp.close(socket)
 	end
 end

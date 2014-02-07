@@ -33,12 +33,17 @@ defmodule TcpServer.TcpListener do
 	def handle_cast(:accept, state) do
 		{:ok, accept_socket} = :gen_tcp.accept(state.socket)
 		# FIXME: Why is it not possible to call by atom (:tcp_client_supervisor)?
+		Lager.info("New accept socket: ~p", [accept_socket])
 		{:ok, pid} = TcpServer.TcpClientSupervisor.start_client()
 		Lager.info("PID: ~p", [pid])
 		case :gen_tcp.controlling_process(accept_socket, pid) do
 			:ok ->
 				Lager.info("Accept socket: ~p", [accept_socket])
 				TcpServer.TcpClientFsm.set_socket(pid, accept_socket)
+				# FIXME: This is needed in order to accept more than one client
+				#        Does this ensure to have a lot of connections open
+				#        at the same time (connecting at the same time?)
+				:gen_server.cast(self(), :accept)
 				{:noreply, state}
 			{:error, reason} ->
 				Lager.error(%s(Error moving controlling process: #{reason}))
